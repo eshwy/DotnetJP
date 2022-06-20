@@ -1,0 +1,105 @@
+﻿@model PagedList<UserPersonalDetailsTable>
+
+@{
+    ViewData["Title"] = "Index";
+}
+@using X.PagedList.Mvc.Core;
+@using X.PagedList;
+
+
+
+<body style="background-color: #d3d3d3; font-size:19px">
+    <form asp-action="Index" method="get">
+        <div class="form-actions no-color">
+            <p>
+                Gender : @Html.DropDownList("Gender", TempData["Gender"] as IEnumerable<SelectListItem>)
+                Skill : @Html.DropDownList("Skill", TempData["Skill"] as IEnumerable<SelectListItem>)
+                Find by Value: <input type="text" name="SearchString" value="@ViewData["ValueFilter"]" />
+                <input type="submit" value="Search" class="btn btn-default" /> |
+                <a asp-action="Index">Back to Default</a>
+            </p>
+        </div>        
+        <script src="~/js/particles.js"></script>
+        <script src="~/js/app.js"></script>
+    </form>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    <a asp-action="Index" asp-route-sort_order="@ViewData["EmailSortParm"]">@Html.DisplayNameFor(model => model.First().Email)</a>
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.First().FirstName)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.First().LastName)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.First().Gender)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.First().City)
+                </th>
+                <th>
+                    <a asp-action="Index" asp-route-sort_order="@ViewData["ExperienceSortParm"]">@Html.DisplayNameFor(model => model.First().Experience)</a>
+                </th>
+                <th>
+                    <a asp-action="Index" asp-route-sort_order="@ViewData["SkillsSortParm"]">@Html.DisplayNameFor(model => model.First().Skills)</a>
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Email)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.FirstName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.LastName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Gender)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.City)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Experience)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Skills)
+                    </td>
+                    <td>
+                        @Html.ActionLink("Details", "Details", new { id = item.User_Id }, new { @class = "btn btn-block btn-primary btn-rad text-white" })
+                    </td>
+                </tr>
+            }
+
+        </tbody>
+
+    </table>
+    <table align="center">
+        <tr>
+            <td style="font-size:25px ;text-decoration:underline;text-decoration-color:black">
+                Pages
+            </td>
+        </tr>
+        <tr align="center">
+            <td style="font-size:25px">
+                @Html.PagedListPager((IPagedList)Model, page => Url.Action("Index", new { page = page }))
+            </td>
+
+        </tr>
+    </table>
+
+</body>
+
+
+
+
+

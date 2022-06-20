@@ -1,0 +1,9 @@
+﻿@model IEnumerable<Article>
+
+@foreach (var item in Model)
+{
+    <h1>@item.Title</h1>
+    <h2>@item.Category</h2>
+    @Html.Raw(item.Content)
+
+}

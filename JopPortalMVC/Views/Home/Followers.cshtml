@@ -1,0 +1,15 @@
+﻿@model DeatilsView
+@{
+    ViewData["Title"] = "_Followers";
+}
+
+
+@foreach (var i in Model.UserFollowers)
+{
+    @i.FollowerName;    
+}
+
+@foreach (var j in Model.UserFollowing)
+{
+    @j.UserName;
+}

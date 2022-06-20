@@ -1,0 +1,282 @@
+﻿@model DeatilsView
+<link rel="stylesheet" href="~/css/Details.css" />
+
+@{
+    ViewData["Title"] = "Details";
+}
+<script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
+@foreach (var Value in Model.ParticularDetails)
+{
+
+    <div class="resume">
+        <div class="resume_left">
+            <div class="resume_profile">
+                <img src="@Value.ImagePath" alt="profile_pic">
+            </div>
+            <div class="resume_content">
+                <div class="resume_item resume_info">
+                    <div class="title">
+                        <p class="bold">@Value.FirstName @Value.LastName</p>
+                        <p class="regular">Gender : @Value.Gender</p>
+                        <p class="regular">D-O-B  &nbsp;&nbsp;: @Value.Date_Of_Birth.Date.ToShortDateString()</p>
+                    </div>
+                    <ul>
+                        <li>
+                            <div class="icon">
+                                <i class="fas fa-map-signs"></i>
+                            </div>
+                            <div class="data">
+                                @Value.UserAddress<br />@Value.City
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon">
+                                <i class="fas fa-mobile-alt"></i>
+                            </div>
+                            <div class="data">
+                                @Value.Phone_Number
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="data">
+                                @Value.Email
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon">
+                                <i class="fab fa-weebly"></i>
+                            </div>
+                            <div class="data">
+                                www.@Value.FirstName .com
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="resume_item resume_skills">
+                    <div class="title">
+                        <p class="bold">skill's</p>
+                    </div>
+                    <ul>
+                        <li>
+                            <div class="skill_name">
+                                @Value.Skills
+                            </div>
+                            <div class="skill_progress">
+                                <span style="width: 90%;"></span>
+                            </div>
+                            <div class="skill_per">90%</div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="resume_item resume_skills">
+                    <div class="title">
+                        <p class="bold">Experience: @Value.Experience YEARS</p>
+                    </div>
+                </div>
+                <div class="resume_item resume_social">
+                    <div class="title">
+                        <p class="bold">Social</p>
+                    </div>
+                    <ul>
+                        <li>
+                            <div class="icon">
+                                <i class="fab fa-facebook-square"></i>
+                            </div>
+                            <div class="data">
+                                <p class="semi-bold">Facebook</p>
+                                <p>@Value.FirstName@@Facebook</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon">
+                                <i class="fab fa-twitter-square"></i>
+                            </div>
+                            <div class="data">
+                                <p class="semi-bold">Twitter</p>
+                                <p>@Value.FirstName@@twitter</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon">
+                                <i class="fab fa-youtube"></i>
+                            </div>
+                            <div class="data">
+                                <p class="semi-bold">Youtube</p>
+                                <p>@Value.FirstName@@youtube</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="icon">
+                                <i class="fab fa-linkedin"></i>
+                            </div>
+                            <div class="data">
+                                <p class="semi-bold">Linkedin</p>
+                                <p>@Value.FirstName@@linkedin</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="resume_right">
+            <div class="resume_item resume_about">
+                <div class="title">
+                    <p class="bold">About @Value.FirstName @Value.LastName</p>
+                </div>
+                <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Perspiciatis illo fugit officiis distinctio culpa officia totam atque exercitationem inventore repudiandae?</p>
+            </div>
+            <div class="resume_item resume_work">
+                <div class="title">
+                    <p class="bold">Work Experience</p>
+                </div>
+                <ul>
+                    @foreach (var work in Model.UserJobDetails)
+                    {
+                        <li>
+                            <div class="date">
+                                @work.WorkedFrom.Year  -  @if (@work.WorkedTill != null)
+                                {
+                                    @Convert.ToDateTime(@work.WorkedTill).Year
+                                }
+                                else
+                                {
+                                    @(work.WorkedTill?.ToString("dd/MM/yyyy") ?? "Present Woking Company")
+                                }
+                            </div>
+                            <div class="info">
+                                <p class="semi-bold">Company Name : @work.CompanyName</p>
+                                <p class="semi-bold">Locatin Name : @work.LocationWorked</p>
+                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nostrum, voluptatibus!</p>
+                            </div>
+                        </li>
+                    }
+
+                </ul>
+            </div>
+            <div class="resume_item resume_education">
+                <div class="title">
+                    <p class="bold">Education</p>
+                </div>
+                <ul>
+                    <li>
+                        <p class="semi-bold">Primary Education</p>
+                        <div class="date">@Value.StartPrimaryEducationYear.Year - @Value.EndPrimaryEducationYear.Year</div>
+                        <div class="info">
+                            <p class="semi-bold">Studied : @Value.PrimaryEducation - Percentage : @Value.PercentPrimaryEducation %</p>
+                            <p> </p>
+                        </div>
+                    </li>
+                    <li>
+                        <p class="semi-bold">Secondary Education</p>
+                        <div class="date">@Value.StartSecodaryEducationYear.Year - @Value.EndSecodaryEducationYear.Year</div>
+                        <div class="info">
+                            <p class="semi-bold">Studied : @Value.SecodaryEducation - Percentage : @Value.PercentSecodaryEducation%</p>
+                            <p class="semi-bold">Branch : @Value.SecodaryEducationBranch</p>
+
+                        </div>
+                    </li>
+                    <li>
+                        <p class="semi-bold">Under Graduation</p>
+                        <div class="date">
+                            @if (@Value.StartUnderGraduationYear != null)
+                            {
+                                @Convert.ToDateTime(@Value.StartUnderGraduationYear).Year
+                            }
+                            else
+                            {
+                                @(@Value.StartUnderGraduationYear?.ToString("dd/MM/yyyy") ?? "Not Graduated")
+                            }    -
+                            @if (@Value.EndUnderGraduationYear != null)
+                            {
+                                @Convert.ToDateTime(@Value.EndUnderGraduationYear).Year
+                            }
+                            else
+                            {
+                                @(@Value.EndUnderGraduationYear?.ToString("dd/MM/yyyy") ?? " ")
+                            }
+                        </div>
+                        <div class="info">
+                            <p class="semi-bold">@Value.UnderGraduationEducation -  @Value.PercentagePostEducation</p>
+                            <p class="semi-bold">Branch : @Value.UnderGraduationBranch</p>
+                        </div>
+                    </li>
+                    <li>
+                        <p class="semi-bold">Post Graduation</p>
+                        <div class="date">
+                            @if (@Value.StartPostGraduationYear != null)
+                            {
+                                @Convert.ToDateTime(@Value.StartPostGraduationYear).Year
+                            }
+                            else
+                            {
+                                @(@Value.StartPostGraduationYear?.ToString("dd/MM/yyyy") ?? "Not Graduated")
+                            }    -
+                            @if (@Value.EndPostGraduationYear != null)
+                            {
+                                @Convert.ToDateTime(@Value.EndPostGraduationYear).Year
+                            }
+                            else
+                            {
+                                @(@Value.EndPostGraduationYear?.ToString("dd/MM/yyyy") ?? " ")
+                            }
+                        </div>
+                        <div class="info">
+                            <p class="semi-bold"> @Value.PostGraduationBranch   @Value.PercentagePostEducation</p>
+                            <p class="semi-bold">@Value.PostGraduationBranch</p>
+
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="resume_item resume_hobby">
+                <div class="title">
+                    <p class="bold">Hobby</p>
+                </div>
+                <ul>
+                    <li><i class="fas fa-book"></i></li>
+                    <li><i class="fas fa-gamepad"></i></li>
+                    <li><i class="fas fa-music"></i></li>
+                    <li><i class="fab fa-pagelines"></i></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    @if (ViewBag.IdValue == @Value.User_Id)
+    {
+        @Html.ActionLink("Add Article", "Article", new { id = Value.User_Id }, new { @class = "btn btn-block" })
+        @Html.ActionLink("Add To List", "Article", new { id = Value.User_Id }, new { @class = "btn btn-block" })
+        @*<a asp-action="Article" class="btn-primary btn-lg">Add Article</a>*@
+    }
+}
+Followers : @Model.UserFollowers.Count();
+@foreach (var i in Model.UserFollowers)
+{
+    <br>
+    @i.FollowerName;
+}
+<br>
+Following: @Model.UserFollowing.Count();
+@foreach (var j in Model.UserFollowing)
+{
+    <br>
+    @j.UserName;
+}
+
+Article :
+@foreach (var art in Model.Article)
+{
+
+<p>Category: @art.Category</p>  <p> Title: @art.Title</p>  @Html.ActionLink("View Article", "ViewArticle", new { UserId = @art.UserId, Title= @art.Title })
+}
+
+
+@*@await Html.PartialAsync("Followers");*@
+@*<partial name="_Followers.cshtml" />*@
+
+
+<div class="h-100 d-flex align-items-center justify-content-center">
+    <a asp-action="Index" class="btn-primary btn-lg">Back to List</a>
+</div>

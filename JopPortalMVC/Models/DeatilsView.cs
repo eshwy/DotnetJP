@@ -9,8 +9,8 @@ namespace JopPortalMVC.Models
     {
         public List<ParticularDetails> ParticularDetails { get; set; }
         public IEnumerable<UserJobDetails> UserJobDetails { get; set; }
-        public IEnumerable<UserFollowers> UserFollowers { get; set; }
-        public IEnumerable<UserFollowing> UserFollowing { get; set; }
+        public IEnumerable<FollowDetails> UserFollowingDetails { get; set; }
+        public IEnumerable<FollowDetails> UserFollowersDetails { get; set; }       
         public IEnumerable<Article> Article { get; set; }
     }
 }

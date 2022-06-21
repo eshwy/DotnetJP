@@ -6,11 +6,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using JobPortal2.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace JobPortal2.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ArticlesController : ControllerBase
     {
         private readonly JobPortalContext _context;

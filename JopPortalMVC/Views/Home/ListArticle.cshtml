@@ -1,0 +1,60 @@
+﻿@model IEnumerable<JopPortalMVC.Models.ArticleView>
+
+<form action="ListArticle" method="post">
+    Find by Title: <input type="text" name="SearchString" value="@ViewData["ValueFilter"]" /> <input type="submit" value="Search" class="btn btn-default btn-primary"/><a asp-action="ListArticle">Back to Default</a>
+
+    <p>Search by comma Seperated EXAMPLE : (Dot net,Python)</p>
+    
+</form>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Title)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Category)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Gender)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Experience)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Skills)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Category)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Gender)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Experience)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Skills)
+            </td>
+            <td>                
+                @Html.ActionLink("View Article", "ViewArticle", new {UserId = item.UserId , Title=item.Title},new {@class="btn btn-primary" })                
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

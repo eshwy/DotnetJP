@@ -1,5 +1,5 @@
 ﻿@model Article;
-<form method="post" asp-controller="Home" asp-action="Article">
+<form method="post" asp-controller="Home" asp-action="ArticlePost">
     <input type="hidden" asp-for="UserId" value="@ViewBag.ID">
     <label asp-for="Title"></label>
     <input type="text" asp-for="Title" />

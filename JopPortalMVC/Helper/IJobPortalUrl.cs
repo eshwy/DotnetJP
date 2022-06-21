@@ -9,5 +9,6 @@ namespace JopPortalMVC.Helper
     interface IJobPortalUrl
     {
         HttpClient initial();
+        
     }
 }

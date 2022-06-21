@@ -30,7 +30,48 @@ namespace JopPortalMVC.Controllers
 
         }
 
-        
+        public string UserClaim()
+        {
+            var token = HttpContext.Session.GetString("JWToken");
+            var handler = new JwtSecurityTokenHandler();
+            var decodedValue = handler.ReadJwtToken(token);
+            var data = decodedValue.Claims.First(c => c.Type == "nameid").Value;
+            return data;
+        }
+
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(UserGetisterAndLoginTable user)
+        {
+            HttpClient cli = _jobPortalUrl.initial();
+            
+            string UserLoginDetails = JsonConvert.SerializeObject(user);
+            StringContent content = new StringContent(UserLoginDetails, Encoding.UTF8, "application/json");
+            var response = await cli.PostAsync(cli.BaseAddress + "api/UserGetisterAndLoginTables", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string token = await response.Content.ReadAsStringAsync();
+                HttpContext.Session.SetString("JWToken", token);
+                
+                return RedirectToAction("Index");
+            }
+            ViewBag.Error = "***  Invalid Valid User or Password  ***";
+            return View();
+        }
+
+        public IActionResult LogOff()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login");
+        }
+
+
         public async Task<IActionResult> Index(String sort_order,string searchString,string gender,String skill,int? page)
         {
             var token = HttpContext.Session.GetString("JWToken");
@@ -107,27 +148,29 @@ namespace JopPortalMVC.Controllers
                     JPDT = JPDT.OrderBy(s => s.Experience).ToList();
                     break;
             }
-
-            var pageNumber = page ?? 1;
-            
+            var pageNumber = page ?? 1;            
             return View(JPDT.ToList().ToPagedList(pageNumber,2));
         }
         public async Task<IActionResult> Details(string id)
         {
             
             var token = HttpContext.Session.GetString("JWToken");
-            var handler = new JwtSecurityTokenHandler();
-            var decodedValue = handler.ReadJwtToken(token);
-            var data = decodedValue.Claims.First(c => c.Type == "nameid").Value;
-            ViewBag.IdValue= Int32.Parse(data);
+            
+            ViewBag.IdValue= Int32.Parse(UserClaim());
 
             HttpClient cli = _jobPortalUrl.initial();
             cli.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);          
 
             List<ParticularDetails> UPD = new List<ParticularDetails>();
             List<UserJobDetails> UJD = new List<UserJobDetails>();
-            List<UserFollowers> userFollowersDetails = new List<UserFollowers>();
-            List<UserFollowing> userFollowingDetails = new List<UserFollowing>();
+
+            List<FollowerAndFollowing> userFollowersDetails = new List<FollowerAndFollowing>();
+            List<FollowerAndFollowing> userFollowingDetails = new List<FollowerAndFollowing>();
+
+            List<FollowDetails> FollowingDetails = new List<FollowDetails>();
+            List<FollowDetails> FollowersDetails = new List<FollowDetails>();
+
+            List<UserPersonalDetailsTable> JPDT = new List<UserPersonalDetailsTable>();
             List<Article> ArticleDetails = new List<Article>();
 
 
@@ -142,14 +185,50 @@ namespace JopPortalMVC.Controllers
                 {
                     var jobDeatilsRes = JobDetailsResult.Content.ReadAsStringAsync().Result;
                     UJD = JsonConvert.DeserializeObject<List<UserJobDetails>>(jobDeatilsRes);
-                    var result = await cli.GetAsync(cli.BaseAddress + "api/UserFollowerandFollowedBies");
+                    
+                    var result = await cli.GetAsync("api/UserFollowerandFollowedBy");
                     if (result.IsSuccessStatusCode)
                     {
                         var res = result.Content.ReadAsStringAsync().Result;
-                        userFollowersDetails = JsonConvert.DeserializeObject<List<UserFollowers>>(res);
-                        userFollowingDetails = JsonConvert.DeserializeObject<List<UserFollowing>>(res);
-                        userFollowingDetails = userFollowingDetails.Where(c => c.FollowerId.ToString() == id).ToList();
-                        userFollowersDetails = userFollowersDetails.Where(c => c.UserId.ToString() == id).ToList();
+                        userFollowersDetails = JsonConvert.DeserializeObject<List<FollowerAndFollowing>>(res);
+                        userFollowingDetails = JsonConvert.DeserializeObject<List<FollowerAndFollowing>>(res);
+                        userFollowingDetails = userFollowingDetails.Where(c => c.UserId.ToString() == id).ToList();
+                        userFollowersDetails = userFollowersDetails.Where(c => c.FollowerId.ToString() == id).ToList();
+                        var UserDetails = await cli.GetAsync("api/ParticularDetails");
+                        if(UserDetails.IsSuccessStatusCode)
+                        {
+                            var RawUserDetails = UserDetails.Content.ReadAsStringAsync().Result;
+                            
+                            JPDT = JsonConvert.DeserializeObject<List<UserPersonalDetailsTable>>(RawUserDetails);
+
+                            var value1 = userFollowingDetails.Join(JPDT, t1 => t1.FollowerId,
+                                                                    t2 => t2.User_Id,
+                                                                    (t1, t2) => new
+                                                                    {
+                                                                        UserId = t1.FollowerId,
+                                                                        UserName = t2.FirstName +" " + t2.LastName
+                                                                    });
+                            var value2 = userFollowersDetails.Join(JPDT, t1 => t1.UserId,
+                                                                    t2 => t2.User_Id,
+                                                                    (t1, t2) => new
+                                                                    {
+                                                                        UserId = t1.UserId,
+                                                                        UserName = t2.FirstName + " " + t2.LastName
+                                                                    });
+                            FollowersDetails = (from i in value1
+                                                select new FollowDetails
+                                                { 
+                                                    UserId= i.UserId,
+                                                    UserName = i.UserName                                                
+                                                }).ToList();
+                            FollowingDetails = (from p in value2
+                                                select new FollowDetails
+                                                {
+                                                    UserId = p.UserId,
+                                                    UserName = p.UserName
+                                                }).ToList();
+
+                        }
                         var ArticleResult = await cli.GetAsync("api/Articles/" + id);
                         if (ArticleResult.IsSuccessStatusCode)
                         {
@@ -164,47 +243,12 @@ namespace JopPortalMVC.Controllers
             {
                 ParticularDetails = UPD,
                 UserJobDetails = UJD,
-                UserFollowers = userFollowersDetails,
-                UserFollowing = userFollowingDetails,
+                UserFollowersDetails = FollowersDetails,
+                UserFollowingDetails = FollowingDetails,
                 Article = ArticleDetails
-            };
-            
-            
-
+            };         
             return View(DeatilsView);
         }
-
-
-
-        //[HttpGet]
-        //public async Task<IActionResult> Followers()
-        //{
-        //    int id = Int32.Parse(TempData["id"].ToString());
-        //    Console.WriteLine(id);
-        //    var token = HttpContext.Session.GetString("JWToken");
-        //    HttpClient cli = _jobPortalUrl.initial();
-        //    cli.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        //    List<UserFollowers> userFollowersDetails = new List<UserFollowers>();
-        //    List<UserFollowing> userFollowingDetails = new List<UserFollowing>();
-
-        //    var result = await cli.GetAsync(cli.BaseAddress + "api/UserFollowerandFollowedBies");
-        //    if (result.IsSuccessStatusCode)
-        //    {
-        //        var res = result.Content.ReadAsStringAsync().Result;
-        //        userFollowersDetails = JsonConvert.DeserializeObject<List<UserFollowers>>(res);
-        //        userFollowingDetails = JsonConvert.DeserializeObject<List<UserFollowing>>(res);
-        //        userFollowingDetails = userFollowingDetails.Where(c => c.FollowerId == id).ToList();                
-        //        userFollowersDetails = userFollowersDetails.Where(c => c.UserId == id).ToList();
-
-        //    }
-
-        //    DeatilsView Deatils = new DeatilsView()
-        //    {
-        //        UserFollowers = userFollowersDetails,
-        //        UserFollowing= userFollowingDetails
-        //    };
-        //    return PartialView(Deatils);
-        //}
 
 
         [HttpGet]
@@ -225,60 +269,28 @@ namespace JopPortalMVC.Controllers
                 ParticularArticleDetails = JsonConvert.DeserializeObject<List<Article>>(RawArticleResult);
                 return View(ParticularArticleDetails);
             }
-            return RedirectToAction("Index");
-
-            
+            return RedirectToAction("Index");            
         }
 
+        
+
+        
         [HttpGet]
-        public IActionResult Login()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Login(UserGetisterAndLoginTable user)
-        {
-            HttpClient cli = _jobPortalUrl.initial();
-            //Console.WriteLine(user.Name);
-            //Console.WriteLine(user.Password);
-            
-            string UserLoginDetails = JsonConvert.SerializeObject(user);
-            StringContent content = new StringContent(UserLoginDetails, Encoding.UTF8, "application/json");
-            var response = await cli.PostAsync(cli.BaseAddress + "api/UserGetisterAndLoginTables", content);
-
-            if (response.IsSuccessStatusCode)
-            {
-                string token = await response.Content.ReadAsStringAsync();
-                HttpContext.Session.SetString("JWToken",token);
-                return RedirectToAction("Index");
-            }
-             return View();
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-        [HttpGet]
-        public IActionResult Article(string id)
-        {
-            ViewBag.ID = id;
-            var token = HttpContext.Session.GetString("JWToken");
-            var handler = new JwtSecurityTokenHandler();
-            var decodedValue = handler.ReadJwtToken(token);
-            var data = decodedValue.Claims.First(c => c.Type == "nameid").Value;
-            Console.WriteLine(data);            
+        public IActionResult ArticlePost()
+        {         
             return View();
         }
 
         [HttpPost]
         [System.Web.Mvc.ValidateInput(false)]
-        public async Task<IActionResult> Article(Article article)
+        public async Task<IActionResult> ArticlePost(Article article)
         {
+            
             HttpClient cli = _jobPortalUrl.initial();
             var token = HttpContext.Session.GetString("JWToken");
-            cli.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);            
+            cli.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var handler = new JwtSecurityTokenHandler();            
+            article.UserId = Int32.Parse(UserClaim());
             Console.WriteLine(article);
             string ArticleData = JsonConvert.SerializeObject(article);
 
@@ -287,8 +299,208 @@ namespace JopPortalMVC.Controllers
             if (response.IsSuccessStatusCode)
             {                
                 return RedirectToAction("Index");
-            }            
+            }          
+            return View();
+        }
+        public async Task<IActionResult> ListArticle(string searchString)
+        {
+            ViewData["ValueFilter"] = searchString;
+            HttpClient cli = _jobPortalUrl.initial();
+            var token = HttpContext.Session.GetString("JWToken");
+            cli.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            List<ArticleView> TotalArticleDetails = new List<ArticleView>();
+            List<ArticleView> TotalArticleDetails1 = new List<ArticleView>();
+            List<Article> ArticleDetails = new List<Article>();
+            List<UserPersonalDetailsTable> PersonalDetails = new List<UserPersonalDetailsTable>();
+            
+            var ArticleResponse = await cli.GetAsync("api/Articles");
+            if (ArticleResponse.IsSuccessStatusCode)
+            {
+                var ArtileResult = ArticleResponse.Content.ReadAsStringAsync().Result;
+                ArticleDetails = JsonConvert.DeserializeObject<List<Article>>(ArtileResult);
+                var UserDetailsResponse = await cli.GetAsync("api/AllUserDetails");
+                if (UserDetailsResponse.IsSuccessStatusCode)
+                {
+                    var UserResult = UserDetailsResponse.Content.ReadAsStringAsync().Result;
+                    PersonalDetails = JsonConvert.DeserializeObject<List<UserPersonalDetailsTable>>(UserResult);
 
+                    var LinqJoinArticle = ArticleDetails.Join(PersonalDetails, t1 => t1.UserId,
+                                                                    t2 => t2.User_Id,
+                                                                    (t1, t2) => new
+                                                                    {
+                                                                        UserId = t1.UserId,
+                                                                        Name = t2.FirstName + " " + t2.LastName,
+                                                                        Title = t1.Title,
+                                                                        Category = t1.Category,
+                                                                        Gender =t2.Gender,
+                                                                        Experience =t2.Experience,
+                                                                        Skills = t2.Skills
+                                                                    });
+                    TotalArticleDetails = (from p in LinqJoinArticle
+                                           select new ArticleView
+                                           {
+                                               UserId = p.UserId,
+                                               Name = p.Name,
+                                               Title =p.Title,
+                                               Category =p.Category,
+                                               Gender =p.Gender,
+                                               Experience=p.Experience,
+                                               Skills=p.Skills
+                                           }).ToList();
+                }
+                if (!String.IsNullOrEmpty(searchString))
+                {
+                    var Title = searchString.Split(',').Select(p => p.ToLower());
+                                      
+                    TotalArticleDetails = TotalArticleDetails.Where(c => Title.Contains(c.Title.ToLower())).ToList();
+                    
+
+                }
+
+
+            }
+            return View(TotalArticleDetails);
+        }
+
+        public async Task<IActionResult> UserAddedList(SoretedProfiles soreted)
+        {
+            HttpClient cli = _jobPortalUrl.initial();
+            var token = HttpContext.Session.GetString("JWToken");
+            var handler = new JwtSecurityTokenHandler();
+            var decodedValue = handler.ReadJwtToken(token);
+            var data = decodedValue.Claims.First(c => c.Type == "nameid").Value;
+            soreted.SortedBy = Int32.Parse(UserClaim());
+            string SortData = JsonConvert.SerializeObject(soreted);
+
+            StringContent content = new StringContent(SortData, Encoding.UTF8, "application/json");
+            Console.WriteLine(data);
+            
+            List<SoretedProfiles> SoretedProfilesList = new List<SoretedProfiles>();
+            
+            var result = await cli.PostAsync(cli.BaseAddress + "api/SoretedProfiles" , content);
+            if (result.IsSuccessStatusCode)
+            {
+                return RedirectToAction("SortedView");
+            }
+            return RedirectToAction("SortedView");
+        }
+
+        public async Task<IActionResult> SortedView()
+        {
+            HttpClient cli = _jobPortalUrl.initial();
+            var token = HttpContext.Session.GetString("JWToken");
+            cli.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            
+            var data = Int32.Parse(UserClaim());
+
+            List<UserPersonalDetailsTable> UserSorderList = new List<UserPersonalDetailsTable>();
+            List<SoretedProfiles> SorderList = new List<SoretedProfiles>();
+            List<SortedView> ParticularUserSorderList = new List<SortedView>();
+
+            var result = await cli.GetAsync(cli.BaseAddress + "api/SoretedProfiles/" + data);
+            if (result.IsSuccessStatusCode)
+            {
+                var RawSortData = result.Content.ReadAsStringAsync().Result;
+
+                SorderList = JsonConvert.DeserializeObject<List<SoretedProfiles>>(RawSortData);
+                var ProfileResult = await cli.GetAsync(cli.BaseAddress + "api/AllUserDetails");
+                if (ProfileResult.IsSuccessStatusCode)
+                {
+                    var RawProfileData = ProfileResult.Content.ReadAsStringAsync().Result;
+                    UserSorderList = JsonConvert.DeserializeObject<List<UserPersonalDetailsTable>>(RawProfileData);
+
+                    var LinqSortData = SorderList.Join(UserSorderList, t1 => t1.SeletedId,
+                                                                    t2 => t2.User_Id,
+                                                                    (t1, t2) => new
+                                                                    {
+                                                                        UserId = t1.SeletedId,
+                                                                        FirstName = t2.FirstName ,
+                                                                        LastName = t2.LastName,
+                                                                        Email = t2.Email,
+                                                                        Gender = t2.Gender,
+                                                                        City = t2.City,
+                                                                        Experience= t2.Experience,
+                                                                        Skills = t2.Skills
+                                                                    });
+                    ParticularUserSorderList = (from p in LinqSortData
+                                                select new SortedView
+                                                {
+                                                    UserId = p.UserId,
+                                                    FirstName = p.FirstName,
+                                                    LastName = p.LastName,
+                                                    Email = p.Email,
+                                                    Gender = p.Gender,
+                                                    City = p.City,
+                                                    Experience = p.Experience,
+                                                    Skills = p.Skills
+                                                }).ToList();
+                }
+            }
+
+            return View(ParticularUserSorderList);
+        }
+
+        public async Task<IActionResult> RemoveFromSortList(SoretedProfiles Sp)
+        {
+            HttpClient cli = _jobPortalUrl.initial();
+            var token = HttpContext.Session.GetString("JWToken");
+            cli.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            
+            Sp.SortedBy = Int32.Parse(UserClaim());
+
+            string RemoveData = JsonConvert.SerializeObject(Sp);
+
+            StringContent content = new StringContent(RemoveData, Encoding.UTF8, "application/json");
+            var RemoveResult = await cli.PostAsync(cli.BaseAddress + "api/SoretedProfiles/Remove", content);
+            if (RemoveResult.IsSuccessStatusCode)
+            {
+                return RedirectToAction("SortedView");
+            }
+            return RedirectToAction("SortedView");
+        }
+        
+        public async Task<IActionResult> RemoveAndUnFollow(FollowerAndFollowing UnFollow)
+        {
+            Console.WriteLine(UnFollow.FollowerId);
+            HttpClient cli = _jobPortalUrl.initial();
+            var token = HttpContext.Session.GetString("JWToken");
+            cli.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            
+            string UnFollowData = JsonConvert.SerializeObject(UnFollow);
+
+            StringContent content = new StringContent(UnFollowData, Encoding.UTF8, "application/json");
+            var RemoveResult = await cli.PostAsync(cli.BaseAddress + "api/UserFollowerandFollowedBy/Remove", content);
+            if (RemoveResult.IsSuccessStatusCode)
+            {
+                return RedirectToAction("Details", new { id = UnFollow.UserId });
+            }
+            return RedirectToAction("Details", new { id = UnFollow.UserId });
+        }
+
+        public async Task<IActionResult> Follow(FollowerAndFollowing UnFollow)
+        {
+            
+            
+            HttpClient cli = _jobPortalUrl.initial();
+            var token = HttpContext.Session.GetString("JWToken");
+            cli.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);            
+
+            UnFollow.UserId = Int32.Parse(UserClaim());
+
+
+            string UnFollowData = JsonConvert.SerializeObject(UnFollow);
+
+            StringContent content = new StringContent(UnFollowData, Encoding.UTF8, "application/json");
+            var RemoveResult = await cli.PostAsync(cli.BaseAddress + "api/UserFollowerandFollowedBy", content);
+            if (RemoveResult.IsSuccessStatusCode)
+            {
+                return RedirectToAction("Details", new { id = UnFollow.FollowerId });
+            }
+            return RedirectToAction("Details", new { id = UnFollow.FollowerId });
+        }
+
+        public IActionResult Privacy()
+        {
             return View();
         }
 

@@ -25,7 +25,8 @@ namespace JobPortal2.Models
         public DbSet<UserJobDetails> UserJobDetails { get; set; }
         public DbSet<UserFollowerandFollowedBy> UserFollowerandFollowedBy { get; set; }
         public DbSet<Article> Article { get; set; }
-        public DbSet<JobPortal2.Models.SoretedProfiles> SoretedProfiles { get; set; }
+        public DbSet<SoretedProfiles> SoretedProfiles { get; set; }
+        public DbSet<FollowerAndFollowing> FollowerAndFollowing { get; set; }
 
     }
 }

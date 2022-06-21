@@ -11,7 +11,7 @@
 
     <h2 class="nonactive"> sign up </h2>
     <form asp-controller="Home" asp-action="Login">
-        <input type="text" class="text"  asp-for="Name">
+        <input type="text" class="text" asp-for="Name">
         <span>username</span>
 
         <br>
@@ -20,8 +20,10 @@
         <span>password</span>
         <br>
 
-        <input type="checkbox" id="checkbox-1-1" class="custom-checkbox" />
-        <label for="checkbox-1-1">Keep me Signed in</label>
+        @if (ViewBag.Error != null)
+        {
+            <h3 style="color:White">@ViewBag.Error</h3>
+        }
 
         <button class="signin">
             Sign In

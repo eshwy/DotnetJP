@@ -14,7 +14,7 @@
             <p>
                 Gender : @Html.DropDownList("Gender", TempData["Gender"] as IEnumerable<SelectListItem>)
                 Skill : @Html.DropDownList("Skill", TempData["Skill"] as IEnumerable<SelectListItem>)
-                Find by Value: <input type="text" name="SearchString" value="@ViewData["ValueFilter"]" />
+                Find by Value: <input type="text" name="SearchString" value="@ViewData["ValueFilter"]"/>
                 <input type="submit" value="Search" class="btn btn-default" /> |
                 <a asp-action="Index">Back to Default</a>
             </p>

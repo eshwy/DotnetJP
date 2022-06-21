@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace JopPortalMVC.Models
 {
-    public class DropDownList
+    public class FollowDetails
     {
-        public string value1 { get; set; }
-        public string value2 { get; set; }
+        public int UserId { get; set; }
+        public String UserName { get; set; }
     }
 }

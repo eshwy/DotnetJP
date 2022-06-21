@@ -76,48 +76,40 @@
                         <p class="bold">Experience: @Value.Experience YEARS</p>
                     </div>
                 </div>
-                <div class="resume_item resume_social">
+                <div class="resume_item resume_skills">
                     <div class="title">
-                        <p class="bold">Social</p>
+                        <p class="bold">Followers : @Model.UserFollowersDetails.Count()</p>
                     </div>
-                    <ul>
-                        <li>
-                            <div class="icon">
-                                <i class="fab fa-facebook-square"></i>
-                            </div>
-                            <div class="data">
-                                <p class="semi-bold">Facebook</p>
-                                <p>@Value.FirstName@@Facebook</p>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="icon">
-                                <i class="fab fa-twitter-square"></i>
-                            </div>
-                            <div class="data">
-                                <p class="semi-bold">Twitter</p>
-                                <p>@Value.FirstName@@twitter</p>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="icon">
-                                <i class="fab fa-youtube"></i>
-                            </div>
-                            <div class="data">
-                                <p class="semi-bold">Youtube</p>
-                                <p>@Value.FirstName@@youtube</p>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="icon">
-                                <i class="fab fa-linkedin"></i>
-                            </div>
-                            <div class="data">
-                                <p class="semi-bold">Linkedin</p>
-                                <p>@Value.FirstName@@linkedin</p>
-                            </div>
-                        </li>
-                    </ul>
+                    @foreach (var i in Model.UserFollowersDetails)
+                    {
+                <p>
+                    @i.UserName;
+
+                    @if (ViewBag.IdValue == @Value.User_Id)
+                    {
+                        @Html.ActionLink("Remove", "RemoveAndUnFollow", new { UserId = @Value.User_Id, FollowerId = @i.UserId }, new { @class = "btn btn-danger btn-small", @onclick = "return confirm('Do You Want to Remove Follower?');" })
+
+                    }
+                </p>
+                    }
+                </div>
+                <div class="resume_item resume_skills">
+                    <div class="title">
+                        <p class="bold">Following : @Model.UserFollowingDetails.Count()</p>
+                    </div>                    
+                    @foreach (var j in Model.UserFollowingDetails)
+                    {                    
+                    @j.UserName;
+
+                    @if (ViewBag.IdValue == @Value.User_Id)
+                    {
+                        @Html.ActionLink("UnFollow", "RemoveAndUnFollow", new { UserId = @j.UserId, FollowerId = @Value.User_Id }, new { @class = "btn btn-danger", @onclick = "return confirm('Do You Want to UnFollow?');" })
+                    }
+
+                    }
+
+
+
                 </div>
             </div>
         </div>
@@ -233,50 +225,32 @@
             </div>
             <div class="resume_item resume_hobby">
                 <div class="title">
-                    <p class="bold">Hobby</p>
+                    <p class="bold">Article</p>
                 </div>
                 <ul>
-                    <li><i class="fas fa-book"></i></li>
-                    <li><i class="fas fa-gamepad"></i></li>
-                    <li><i class="fas fa-music"></i></li>
-                    <li><i class="fab fa-pagelines"></i></li>
+                    @foreach (var art in Model.Article)
+                    {
+
+                        <i>
+                            Category: @art.Category <br />
+                            Title: @art.Title <br />
+                            @Html.ActionLink("View Article", "ViewArticle", new { UserId = @art.UserId, Title = @art.Title }, new { @class = "btn btn-primary" })
+                        </i>
+                    }
                 </ul>
+                @if (ViewBag.IdValue == @Value.User_Id)
+                {
+                    @Html.ActionLink("Add Article", "ArticlePost", new { id = Value.User_Id }, new { @class = "btn btn-block btn-success" })
+                }
+            </div>
+            <div class="resume_item resume_hobby">
+                @Html.ActionLink("Add To List", "UserAddedList", new { SeletedId = @Value.User_Id }, new { @class = "btn btn-block btn-success" }) &nbsp;&nbsp;
+                @Html.ActionLink("Follow", "Follow", new { FollowerId = @Value.User_Id }, new { @class = "btn btn-block btn-primary" })
             </div>
         </div>
     </div>
-    @if (ViewBag.IdValue == @Value.User_Id)
-    {
-        @Html.ActionLink("Add Article", "Article", new { id = Value.User_Id }, new { @class = "btn btn-block" })
-        @Html.ActionLink("Add To List", "Article", new { id = Value.User_Id }, new { @class = "btn btn-block" })
-        @*<a asp-action="Article" class="btn-primary btn-lg">Add Article</a>*@
-    }
+    
 }
-Followers : @Model.UserFollowers.Count();
-@foreach (var i in Model.UserFollowers)
-{
-    <br>
-    @i.FollowerName;
-}
-<br>
-Following: @Model.UserFollowing.Count();
-@foreach (var j in Model.UserFollowing)
-{
-    <br>
-    @j.UserName;
-}
-
-Article :
-@foreach (var art in Model.Article)
-{
-
-<p>Category: @art.Category</p>  <p> Title: @art.Title</p>  @Html.ActionLink("View Article", "ViewArticle", new { UserId = @art.UserId, Title= @art.Title })
-}
-
-
-@*@await Html.PartialAsync("Followers");*@
-@*<partial name="_Followers.cshtml" />*@
-
-
 <div class="h-100 d-flex align-items-center justify-content-center">
     <a asp-action="Index" class="btn-primary btn-lg">Back to List</a>
 </div>

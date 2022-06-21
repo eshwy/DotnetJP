@@ -23,7 +23,7 @@ namespace JobPortal2.Repository
 		public string Authenticate(UserLogin users)
 		{
 			var data = _context.UserGetisterAndLoginTable.FirstOrDefault(x => x.UserName == users.Name && x.PassWord == users.Password);
-			Console.WriteLine(data.User_Id);
+			
 			if (data is null)
             {
                 return null;
@@ -38,7 +38,7 @@ namespace JobPortal2.Repository
 			  {
 			 new Claim(ClaimTypes.Name, data.UserName),
 			 new Claim(ClaimTypes.NameIdentifier, data.User_Id.ToString()),
-			 //new Claim(ClaimTypes.NameIdentifier, data.User_Id.ToString()),
+			
 			 
 			  }),
 				Expires = DateTime.UtcNow.AddMinutes(60),
